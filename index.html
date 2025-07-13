@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPM Library - Enhanced PDF Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --accent: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --success: #4cc9f0;
+            --border: #dee2e6;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --tool-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            color: var(--light);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            position: relative;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(67, 97, 238, 0.3);
+        }
+
+        .security-badge {
+            background: linear-gradient(45deg, var(--success), #4895ef);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(76, 201, 240, 0.3);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .tools-panel {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .panel-title {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tools-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            color: #a0aec0;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .tool-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.9rem 1.2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+            color: white;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .tool-btn:hover {
+            background: rgba(67, 97, 238, 0.25);
+            border-color: rgba(67, 97, 238, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .tool-btn.active {
+            background: rgba(67, 97, 238, 0.35);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.3);
+        }
+
+        .tool-icon {
+            font-size: 1.2rem;
+        }
+
+        .color-picker {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: var(--transition);
+            box-shadow: var(--tool-shadow);
+        }
+
+        .color-option:hover {
+            transform: scale(1.15);
+        }
+
+        .color-option.active {
+            border-color: white;
+            transform: scale(1.15);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+        }
+
+        .thickness-control {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .thickness-slider {
+            width: 100%;
+            margin: 15px 0;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        .thickness-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+
+        .thickness-value {
+            color: white;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .thickness-preview {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .preview-line {
+            background: var(--primary);
+            border-radius: 3px;
+        }
+
+        .opacity-control {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .opacity-slider {
+            width: 100%;
+            margin: 15px 0;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        .opacity-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+
+        .opacity-value {
+            color: white;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .opacity-preview {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .opacity-sample {
+            width: 120px;
+            height: 30px;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+            position: relative;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        .opacity-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .viewer-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            min-height: 600px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .viewer-controls {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .page-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .control-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+        }
+
+        .control-btn:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(67, 97, 238, 0.3);
+        }
+
+        .control-btn:disabled {
+            background: rgba(108, 117, 125, 0.4);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .page-info {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            white-space: nowrap;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .zoom-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            min-width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            box-shadow: var(--tool-shadow);
+        }
+
+        .zoom-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .pdf-canvas-container {
+            flex: 1;
+            overflow: auto;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 500px;
+            position: relative;
+        }
+
+        .pdf-canvas {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            background: white;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 90%;
+            color: white;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            color: white;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            height: 8px;
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .error-message {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 600px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 90%;
+            margin: 0 auto;
+        }
+
+        .error-icon {
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+            color: #ff6b6b;
+        }
+
+        .error-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .error-description {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            max-width: 500px;
+            margin-bottom: 2.5rem;
+        }
+
+        .annotation-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .temp-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 5;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 120px,
+                rgba(67, 97, 238, 0.03) 120px,
+                rgba(67, 97, 238, 0.03) 240px
+            );
+        }
+
+        .retry-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.9rem 1.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            transition: var(--transition);
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            box-shadow: 0 4px 6px rgba(67, 97, 238, 0.3);
+        }
+
+        .retry-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(67, 97, 238, 0.4);
+        }
+
+        .floating-controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .floating-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1.2rem;
+            border: none;
+        }
+
+        .floating-btn:hover {
+            transform: translateY(-3px) scale(1.1);
+            background: var(--primary-dark);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+        }
+
+        .footer {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            border-radius: 16px;
+            margin-top: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--success);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-links a:hover {
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .eraser-cursor {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='white' stroke='%23333' stroke-width='1'/%3E%3C/svg%3E") 12 12, auto;
+        }
+
+        @media (max-width: 992px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .tools-panel {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo {
+                font-size: 1.4rem;
+            }
+            
+            .viewer-controls {
+                flex-direction: column;
+                gap: 1.2rem;
+                padding: 1rem;
+            }
+            
+            .page-controls {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .zoom-controls {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .pdf-canvas-container {
+                padding: 1rem;
+            }
+            
+            .footer {
+                padding: 1rem;
+            }
+            
+            .footer-links {
+                gap: 1.5rem;
+            }
+            
+            .error-message {
+                height: 500px;
+                padding: 1.5rem;
+            }
+            
+            .error-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .control-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .page-info {
+                font-size: 0.9rem;
+                padding: 0.4rem 0.8rem;
+            }
+            
+            .error-title {
+                font-size: 1.3rem;
+            }
+            
+            .error-description {
+                font-size: 1rem;
+            }
+            
+            .footer-links {
+                gap: 1rem;
+                flex-direction: column;
+            }
+            
+            .color-picker {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .control-btn span {
+                display: none;
+            }
+            
+            .control-btn i {
+                margin-right: 0;
+            }
+            
+            .page-controls {
+                gap: 0.5rem;
+            }
+            
+            .zoom-controls {
+                gap: 0.5rem;
+            }
+            
+            .tool-btn span {
+                display: none;
+            }
+        }
+
+        .pdf-loaded .loading {
+            display: none;
+        }
+
+        .viewer-container {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .pdf-canvas {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <span>IPM Library</span>
+            </div>
+            <div class="security-badge">
+                <i class="fas fa-lock"></i>
+                <span>Secure PDF Viewer</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="tools-panel">
+            <div class="panel-title">
+                <i class="fas fa-tools"></i>
+                Annotation Tools
+            </div>
+            
+            <div class="tools-section">
+                <div class="section-title">Drawing Tools</div>
+                <button class="tool-btn active" id="penTool" data-tool="pen">
+                    <i class="fas fa-pen tool-icon"></i>
+                    <span>Pen</span>
+                </button>
+                <button class="tool-btn" id="highlighterTool" data-tool="highlighter">
+                    <i class="fas fa-highlighter tool-icon"></i>
+                    <span>Highlighter</span>
+                </button>
+                <button class="tool-btn" id="eraserTool" data-tool="eraser">
+                    <i class="fas fa-eraser tool-icon"></i>
+                    <span>Eraser</span>
+                </button>
+            </div>
+            
+            <div class="tools-section">
+                <div class="section-title">Colors</div>
+                <div class="color-picker">
+                    <div class="color-option active" data-color="#ff0000" style="background-color: #ff0000;"></div>
+                    <div class="color-option" data-color="#ff8c00" style="background-color: #ff8c00;"></div>
+                    <div class="color-option" data-color="#ffd700" style="background-color: #ffd700;"></div>
+                    <div class="color-option" data-color="#32cd32" style="background-color: #32cd32;"></div>
+                    <div class="color-option" data-color="#00bfff" style="background-color: #00bfff;"></div>
+                    <div class="color-option" data-color="#1e90ff" style="background-color: #1e90ff;"></div>
+                    <div class="color-option" data-color="#9370db" style="background-color: #9370db;"></div>
+                    <div class="color-option" data-color="#ff1493" style="background-color: #ff1493;"></div>
+                    <div class="color-option" data-color="#00ced1" style="background-color: #00ced1;"></div>
+                    <div class="color-option" data-color="#ff6347" style="background-color: #ff6347;"></div>
+                    <div class="color-option" data-color="#7cfc00" style="background-color: #7cfc00;"></div>
+                    <div class="color-option" data-color="#000000" style="background-color: #000000;"></div>
+                </div>
+            </div>
+            
+            <div class="thickness-control">
+                <div class="section-title">Thickness</div>
+                <input type="range" class="thickness-slider" id="thicknessSlider" min="1" max="30" value="3">
+                <div class="thickness-value" id="thicknessValue">3px</div>
+                <div class="thickness-preview">
+                    <div class="preview-line" id="thicknessPreview" style="height: 3px; width: 120px;"></div>
+                </div>
+            </div>
+            
+            <div class="opacity-control" id="opacityControl">
+                <div class="section-title">Highlight Opacity</div>
+                <input type="range" class="opacity-slider" id="opacitySlider" min="10" max="100" value="40">
+                <div class="opacity-value" id="opacityValue">40%</div>
+                <div class="opacity-preview">
+                    <div class="opacity-sample">
+                        <div class="opacity-overlay" id="opacityPreview" style="background-color: #ffd700; opacity: 0.4;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="viewer-container" id="viewerContainer">
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <div class="loading-text">Loading document securely...</div>
+                <div class="progress-bar">
+                    <div class="progress" id="progressBar"></div>
+                </div>
+            </div>
+            
+            <div class="viewer-controls" id="viewerControls" style="display: none;">
+                <div class="page-controls">
+                    <button class="control-btn" id="prevPage">
+                        <i class="fas fa-chevron-left"></i>
+                        <span>Previous</span>
+                    </button>
+                    <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                    <button class="control-btn" id="nextPage">
+                        <span>Next</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="zoomOut">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <span id="zoomLevel">100%</span>
+                    <button class="zoom-btn" id="zoomIn">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button class="control-btn" id="fitWidth">
+                        <i class="fas fa-expand-alt"></i>
+                        <span>Fit Width</span>
+                    </button>
+                    <button class="control-btn" id="clearAnnotations">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>Clear All</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="pdf-canvas-container" id="canvasContainer">
+                <canvas id="pdfCanvas" class="pdf-canvas"></canvas>
+                <canvas id="annotationCanvas" class="annotation-overlay"></canvas>
+                <canvas id="tempCanvas" class="temp-overlay"></canvas>
+                <div class="watermark"></div>
+            </div>
+            
+            <div class="error-message" id="errorMessage">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="error-title">Error Loading Document</div>
+                <div class="error-description" id="errorDescription">
+                    Unable to load the PDF document. Please check the file URL and try again.
+                </div>
+                <button class="retry-btn" id="retryButton">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Retry Loading</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="floating-controls">
+            <button class="floating-btn" id="helpBtn">
+                <i class="fas fa-question"></i>
+            </button>
+            <button class="floating-btn" id="scrollTopBtn">
+                <i class="fas fa-arrow-up"></i>
+            </button>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="https://ipm-library.lovable.app">
+                    <i class="fas fa-book-open"></i>
+                    <span>Back to Library</span>
+                </a>
+                <a href="https://t.me/IPMLIBRARY">
+                    <i class="fab fa-telegram"></i>
+                    <span>Support</span>
+                </a>
+                <a href="https://ipm-library.lovable.app/privacy">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Privacy Policy</span>
+                </a>
+            </div>
+            <p>&copy; 2025 IPM Library. All rights reserved. | Enhanced PDF Viewer with Smooth Tools</p>
+        </div>
+    </footer>
+
+    <script>
+        class PDFViewer {
+            constructor() {
+                this.pdfDoc = null;
+                this.pageNum = 1;
+                this.pageCount = 0;
+                this.scale = 1.0;
+                this.pdfCanvas = null;
+                this.pdfCtx = null;
+                this.annotationCanvas = null;
+                this.annotationCtx = null;
+                this.tempCanvas = null;
+                this.tempCtx = null;
+                this.currentViewport = null;
+                this.blobUrl = null;
+                
+                // Annotation state
+                this.isDrawing = false;
+                this.currentTool = 'pen';
+                this.currentColor = '#ff0000';
+                this.lastX = 0;
+                this.lastY = 0;
+                this.currentStroke = null;
+                
+                // Store annotations per page
+                this.pageAnnotations = [];
+                
+                // Thickness control
+                this.penThickness = 3;
+                this.highlighterThickness = 15;
+                this.currentThickness = this.penThickness;
+                
+                // Opacity control
+                this.highlighterOpacity = 40; // 40% default
+                
+                // Fixed PDF URL
+                this.defaultPdfUrl = "https://mhrvnnlzhtgeinkvtkjj.supabase.co/storage/v1/object/sign/ebooks/1c7e4ffc-f5a7-4570-8756-ae4b2838858f/d8e57253-3aae-44b6-821d-c63f0a45e897.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9jMWIzMjIwNy0wMWRkLTRiNzAtODNmNy01OTlkNzMzMDM2ZWEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJlYm9va3MvMWM3ZTRmZmMtZjVhNy00NTcwLTg3NTYtYWU0YjI4Mzg4NThmL2Q4ZTU3MjUzLTNhYWUtNDRiNi04MjFkLWM2M2YwYTQ1ZTg5Ny5wZGYiLCJpYXQiOjE3NTI0MTY4NDMsImV4cCI6MjQ0NjIwODg0M30.wupbil7x7iTV8z7kqnLfeID7aSk7sYT5hJQP-YU0x1I"
+                
+                this.init();
+            }
+
+            init() {
+                this.pdfCanvas = document.getElementById('pdfCanvas');
+                this.pdfCtx = this.pdfCanvas.getContext('2d');
+                
+                this.annotationCanvas = document.getElementById('annotationCanvas');
+                this.annotationCtx = this.annotationCanvas.getContext('2d');
+                
+                this.tempCanvas = document.getElementById('tempCanvas');
+                this.tempCtx = this.tempCanvas.getContext('2d');
+                
+                // Set up PDF.js worker
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                
+                // Get PDF URL
+                const pdfUrl = this.getPDFUrl();
+                this.loadPDF(pdfUrl);
+                
+                // Set up controls
+                this.setupControls();
+                
+                // Set up security measures
+                this.setupSecurityMeasures();
+                
+                // Set up annotation tools
+                this.setupAnnotationTools();
+                
+                // Set up thickness control
+                this.setupThicknessControl();
+                
+                // Set up opacity control
+                this.setupOpacityControl();
+                
+                // Add retry button handler
+                document.getElementById('retryButton').addEventListener('click', () => {
+                    this.cleanup();
+                    this.resetViewer();
+                    this.loadPDF(this.getPDFUrl());
+                });
+                
+                // Clear annotations button
+                document.getElementById('clearAnnotations').addEventListener('click', () => {
+                    this.clearAnnotations();
+                });
+                
+                // Scroll to top button
+                document.getElementById('scrollTopBtn').addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+
+            resetViewer() {
+                document.getElementById('loadingIndicator').style.display = 'flex';
+                document.getElementById('viewerControls').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'none';
+                this.pageNum = 1;
+                this.scale = 1.0;
+                this.isDrawing = false;
+                this.pageAnnotations = [];
+            }
+
+            getPDFUrl() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const fileParam = urlParams.get('file');
+                
+                if (!fileParam) {
+                    return this.defaultPdfUrl;
+                }
+
+                try {
+                    return decodeURIComponent(fileParam);
+                } catch (e) {
+                    console.error('Error decoding PDF URL:', e);
+                    return fileParam;
+                }
+            }
+
+            async loadPDF(pdfUrl) {
+                try {
+                    console.log('Loading PDF from:', pdfUrl);
+                    
+                    // Fetch the PDF as a blob to bypass CORS issues
+                    const response = await fetch(pdfUrl);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const blob = await response.blob();
+                    this.blobUrl = URL.createObjectURL(blob);
+                    
+                    // Load PDF document from blob URL
+                    const loadingTask = pdfjsLib.getDocument({
+                        url: this.blobUrl,
+                        cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
+                        cMapPacked: true
+                    });
+                    
+                    // Listen for progress
+                    loadingTask.onProgress = (progressData) => {
+                        const percent = Math.round(progressData.loaded / progressData.total * 100);
+                        document.querySelector('#loadingIndicator .loading-text').textContent = `Loading document... ${percent}%`;
+                        document.getElementById('progressBar').style.width = `${percent}%`;
+                    };
+                    
+                    this.pdfDoc = await loadingTask.promise;
+                    this.pageCount = this.pdfDoc.numPages;
+                    
+                    // Initialize page annotations array
+                    this.pageAnnotations = Array(this.pageCount).fill().map(() => []);
+                    
+                    console.log('PDF loaded successfully, pages:', this.pageCount);
+                    
+                    // Hide loading, show controls
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    document.getElementById('viewerControls').style.display = 'flex';
+                    
+                    // Render first page
+                    this.renderPage(1);
+                    this.updatePageInfo();
+                    this.updateZoomInfo();
+                    
+                } catch (error) {
+                    console.error('Error loading PDF:', error);
+                    let errorMsg = 'Failed to load document. Please check the file URL and try again.';
+                    
+                    if (error.name === 'MissingPDFException') {
+                        errorMsg = 'The PDF file was not found. Please check the URL.';
+                    } else if (error.name === 'InvalidPDFException') {
+                        errorMsg = 'The file is not a valid PDF document.';
+                    } else if (error.name === 'UnexpectedResponseException') {
+                        errorMsg = 'Server returned an unexpected response. Please try again later.';
+                    } else if (error.message.includes('NetworkError')) {
+                        errorMsg = 'Network error. Please check your internet connection.';
+                    }
+                    
+                    this.showError(errorMsg);
+                }
+            }
+
+            async renderPage(pageNumber) {
+                try {
+                    const page = await this.pdfDoc.getPage(pageNumber);
+                    
+                    // Calculate scale to fit width
+                    const container = document.getElementById('canvasContainer');
+                    const containerWidth = container.clientWidth - 40; // padding
+                    
+                    // Get viewport to calculate scale
+                    const viewport = page.getViewport({ scale: 1 });
+                    const scale = Math.min(containerWidth / viewport.width, 2.0);
+                    
+                    // Use calculated scale if not explicitly set
+                    const renderScale = this.scale !== 1.0 ? this.scale : scale;
+                    this.currentViewport = page.getViewport({ scale: renderScale });
+                    
+                    // Set PDF canvas dimensions
+                    this.pdfCanvas.height = this.currentViewport.height;
+                    this.pdfCanvas.width = this.currentViewport.width;
+                    
+                    // Set annotation canvas dimensions to match
+                    this.annotationCanvas.height = this.currentViewport.height;
+                    this.annotationCanvas.width = this.currentViewport.width;
+                    
+                    // Set temp canvas dimensions to match
+                    this.tempCanvas.height = this.currentViewport.height;
+                    this.tempCanvas.width = this.currentViewport.width;
+                    
+                    // Position canvases
+                    this.annotationCanvas.style.height = this.currentViewport.height + 'px';
+                    this.annotationCanvas.style.width = this.currentViewport.width + 'px';
+                    this.tempCanvas.style.height = this.currentViewport.height + 'px';
+                    this.tempCanvas.style.width = this.currentViewport.width + 'px';
+                    
+                    // Render page
+                    const renderContext = {
+                        canvasContext: this.pdfCtx,
+                        viewport: this.currentViewport
+                    };
+                    
+                    await page.render(renderContext).promise;
+                    console.log('Page rendered:', pageNumber);
+                    
+                    // Render existing annotations for this page
+                    this.renderAnnotations();
+                    
+                } catch (error) {
+                    console.error('Error rendering page:', error);
+                    this.showError('Failed to render page. Please try again.');
+                }
+            }
+
+            setupControls() {
+                const prevBtn = document.getElementById('prevPage');
+                const nextBtn = document.getElementById('nextPage');
+                const zoomInBtn = document.getElementById('zoomIn');
+                const zoomOutBtn = document.getElementById('zoomOut');
+                const fitWidthBtn = document.getElementById('fitWidth');
+
+                prevBtn.addEventListener('click', () => {
+                    if (this.pageNum > 1) {
+                        this.savePageAnnotations();
+                        this.pageNum--;
+                        this.renderPage(this.pageNum);
+                        this.updatePageInfo();
+                    }
+                });
+
+                nextBtn.addEventListener('click', () => {
+                    if (this.pageNum < this.pageCount) {
+                        this.savePageAnnotations();
+                        this.pageNum++;
+                        this.renderPage(this.pageNum);
+                        this.updatePageInfo();
+                    }
+                });
+
+                zoomInBtn.addEventListener('click', () => {
+                    this.savePageAnnotations();
+                    this.scale = Math.min(this.scale * 1.2, 3.0);
+                    this.renderPage(this.pageNum);
+                    this.updateZoomInfo();
+                });
+
+                zoomOutBtn.addEventListener('click', () => {
+                    this.savePageAnnotations();
+                    this.scale = Math.max(this.scale / 1.2, 0.5);
+                    this.renderPage(this.pageNum);
+                    this.updateZoomInfo();
+                });
+
+                fitWidthBtn.addEventListener('click', () => {
+                    this.savePageAnnotations();
+                    this.scale = 1.0; // Reset to auto-scale
+                    this.renderPage(this.pageNum);
+                    this.updateZoomInfo();
+                });
+            }
+            
+            setupAnnotationTools() {
+                // Tool selection
+                document.querySelectorAll('.tool-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        // Remove active class from all tools
+                        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                        // Add active class to clicked tool
+                        btn.classList.add('active');
+                        this.currentTool = btn.dataset.tool;
+                        
+                        // Update thickness based on tool
+                        if (this.currentTool === 'pen') {
+                            this.currentThickness = this.penThickness;
+                            document.getElementById('opacityControl').style.display = 'none';
+                        } else if (this.currentTool === 'highlighter') {
+                            this.currentThickness = this.highlighterThickness;
+                            document.getElementById('opacityControl').style.display = 'block';
+                        } else {
+                            document.getElementById('opacityControl').style.display = 'none';
+                        }
+                        
+                        // Update slider
+                        document.getElementById('thicknessSlider').value = this.currentThickness;
+                        document.getElementById('thicknessValue').textContent = this.currentThickness + 'px';
+                        this.updateThicknessPreview();
+                        
+                        // Set cursor
+                        if (this.currentTool === 'eraser') {
+                            this.annotationCanvas.classList.add('eraser-cursor');
+                        } else {
+                            this.annotationCanvas.classList.remove('eraser-cursor');
+                            this.annotationCanvas.style.cursor = 'crosshair';
+                        }
+                    });
+                });
+                
+                // Color selection
+                document.querySelectorAll('.color-option').forEach(color => {
+                    color.addEventListener('click', () => {
+                        // Remove active class from all colors
+                        document.querySelectorAll('.color-option').forEach(c => c.classList.remove('active'));
+                        // Add active class to clicked color
+                        color.classList.add('active');
+                        this.currentColor = color.dataset.color;
+                        this.updateThicknessPreview();
+                        this.updateOpacityPreview();
+                    });
+                });
+                
+                // Drawing events
+                this.annotationCanvas.addEventListener('mousedown', this.startDrawing.bind(this));
+                this.annotationCanvas.addEventListener('mousemove', this.draw.bind(this));
+                this.annotationCanvas.addEventListener('mouseup', this.stopDrawing.bind(this));
+                this.annotationCanvas.addEventListener('mouseout', this.stopDrawing.bind(this));
+                
+                // Touch events for mobile
+                this.annotationCanvas.addEventListener('touchstart', this.startDrawingTouch.bind(this));
+                this.annotationCanvas.addEventListener('touchmove', this.drawTouch.bind(this));
+                this.annotationCanvas.addEventListener('touchend', this.stopDrawing.bind(this));
+                
+                // Enable pointer events for annotation canvas
+                this.annotationCanvas.style.pointerEvents = 'auto';
+            }
+            
+            setupThicknessControl() {
+                const thicknessSlider = document.getElementById('thicknessSlider');
+                const thicknessValue = document.getElementById('thicknessValue');
+                
+                // Set initial values
+                thicknessSlider.value = this.currentThickness;
+                thicknessValue.textContent = this.currentThickness + 'px';
+                this.updateThicknessPreview();
+                
+                // Update thickness when slider changes
+                thicknessSlider.addEventListener('input', (e) => {
+                    this.currentThickness = parseInt(e.target.value);
+                    thicknessValue.textContent = this.currentThickness + 'px';
+                    
+                    // Update tool-specific thickness
+                    if (this.currentTool === 'pen') {
+                        this.penThickness = this.currentThickness;
+                    } else if (this.currentTool === 'highlighter') {
+                        this.highlighterThickness = this.currentThickness;
+                    }
+                    
+                    this.updateThicknessPreview();
+                });
+            }
+            
+            setupOpacityControl() {
+                const opacitySlider = document.getElementById('opacitySlider');
+                const opacityValue = document.getElementById('opacityValue');
+                
+                // Set initial values
+                opacitySlider.value = this.highlighterOpacity;
+                opacityValue.textContent = this.highlighterOpacity + '%';
+                this.updateOpacityPreview();
+                
+                // Update opacity when slider changes
+                opacitySlider.addEventListener('input', (e) => {
+                    this.highlighterOpacity = parseInt(e.target.value);
+                    opacityValue.textContent = this.highlighterOpacity + '%';
+                    this.updateOpacityPreview();
+                });
+            }
+            
+            updateThicknessPreview() {
+                const preview = document.getElementById('thicknessPreview');
+                preview.style.height = this.currentThickness + 'px';
+                preview.style.width = (this.currentThickness * 40) + 'px';
+                preview.style.background = this.currentTool === 'highlighter' ? 
+                    this.hexToRgba(this.currentColor, this.highlighterOpacity / 100) : this.currentColor;
+            }
+            
+            updateOpacityPreview() {
+                const preview = document.getElementById('opacityPreview');
+                preview.style.backgroundColor = this.currentColor;
+                preview.style.opacity = this.highlighterOpacity / 100;
+            }
+            
+            hexToRgba(hex, opacity) {
+                // Remove the hash if present
+                hex = hex.replace('#', '');
+                const r = parseInt(hex.substring(0, 2), 16);
+                const g = parseInt(hex.substring(2, 4), 16);
+                const b = parseInt(hex.substring(4, 6), 16);
+                return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            }
+            
+            startDrawing(e) {
+                this.isDrawing = true;
+                const rect = this.annotationCanvas.getBoundingClientRect();
+                this.lastX = e.clientX - rect.left;
+                this.lastY = e.clientY - rect.top;
+                
+                if (this.currentTool !== 'eraser') {
+                    // Start new stroke
+                    this.currentStroke = {
+                        tool: this.currentTool,
+                        color: this.currentColor,
+                        points: [{x: this.lastX, y: this.lastY}],
+                        width: this.currentThickness,
+                        opacity: this.highlighterOpacity
+                    };
+                    
+                    // Clear temp canvas
+                    this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+                }
+            }
+            
+            startDrawingTouch(e) {
+                if (e.touches.length > 1) return; // Ignore multi-touch
+                e.preventDefault();
+                
+                this.isDrawing = true;
+                const rect = this.annotationCanvas.getBoundingClientRect();
+                this.lastX = e.touches[0].clientX - rect.left;
+                this.lastY = e.touches[0].clientY - rect.top;
+                
+                if (this.currentTool !== 'eraser') {
+                    // Start new stroke
+                    this.currentStroke = {
+                        tool: this.currentTool,
+                        color: this.currentColor,
+                        points: [{x: this.lastX, y: this.lastY}],
+                        width: this.currentThickness,
+                        opacity: this.highlighterOpacity
+                    };
+                    
+                    // Clear temp canvas
+                    this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+                }
+            }
+            
+            draw(e) {
+                if (!this.isDrawing) return;
+                
+                const rect = this.annotationCanvas.getBoundingClientRect();
+                const currentX = e.clientX - rect.left;
+                const currentY = e.clientY - rect.top;
+                
+                if (this.currentTool === 'eraser') {
+                    this.eraseAt(currentX, currentY);
+                    return;
+                }
+                
+                // Add point to current stroke
+                if (this.currentStroke) {
+                    this.currentStroke.points.push({x: currentX, y: currentY});
+                    
+                    // Draw on temp canvas
+                    this.drawStroke(this.tempCtx, this.currentStroke);
+                }
+                
+                this.lastX = currentX;
+                this.lastY = currentY;
+            }
+            
+            drawTouch(e) {
+                if (!this.isDrawing || e.touches.length > 1) return;
+                e.preventDefault();
+                
+                const rect = this.annotationCanvas.getBoundingClientRect();
+                const currentX = e.touches[0].clientX - rect.left;
+                const currentY = e.touches[0].clientY - rect.top;
+                
+                if (this.currentTool === 'eraser') {
+                    this.eraseAt(currentX, currentY);
+                    return;
+                }
+                
+                // Add point to current stroke
+                if (this.currentStroke) {
+                    this.currentStroke.points.push({x: currentX, y: currentY});
+                    
+                    // Draw on temp canvas
+                    this.drawStroke(this.tempCtx, this.currentStroke);
+                }
+                
+                this.lastX = currentX;
+                this.lastY = currentY;
+            }
+            
+            drawStroke(ctx, stroke) {
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                
+                if (stroke.tool === 'highlighter') {
+                    ctx.strokeStyle = this.hexToRgba(stroke.color, stroke.opacity / 100);
+                    ctx.lineWidth = stroke.width;
+                } else { // pen
+                    ctx.strokeStyle = stroke.color;
+                    ctx.lineWidth = stroke.width;
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+                
+                // Draw smooth curve through all points
+                for (let i = 1; i < stroke.points.length; i++) {
+                    const prevPoint = stroke.points[i-1];
+                    const currPoint = stroke.points[i];
+                    
+                    // Calculate control points for smooth curve
+                    const controlPoint = {
+                        x: (prevPoint.x + currPoint.x) / 2,
+                        y: (prevPoint.y + currPoint.y) / 2
+                    };
+                    
+                    ctx.quadraticCurveTo(
+                        prevPoint.x, prevPoint.y,
+                        controlPoint.x, controlPoint.y
+                    );
+                }
+                
+                ctx.stroke();
+            }
+            
+            eraseAt(x, y) {
+                const radius = 20;
+                let removed = false;
+                const strokes = this.pageAnnotations[this.pageNum - 1];
+                
+                // Iterate backwards through strokes so we can remove while iterating
+                for (let i = strokes.length - 1; i >= 0; i--) {
+                    const stroke = strokes[i];
+                    for (let j = 0; j < stroke.points.length; j++) {
+                        const point = stroke.points[j];
+                        const dx = point.x - x;
+                        const dy = point.y - y;
+                        if (dx * dx + dy * dy <= radius * radius) {
+                            // Remove this stroke
+                            strokes.splice(i, 1);
+                            removed = true;
+                            break; // Break inner loop, move to next stroke
+                        }
+                    }
+                }
+                
+                if (removed) {
+                    // Redraw all annotations to reflect the removal
+                    this.renderAnnotations();
+                }
+            }
+            
+            stopDrawing() {
+                if (this.isDrawing) {
+                    this.isDrawing = false;
+                    
+                    // Save the stroke to the current page annotations
+                    if (this.currentStroke && this.currentStroke.points.length > 1) {
+                        // Draw on main annotation canvas
+                        this.drawStroke(this.annotationCtx, this.currentStroke);
+                        this.pageAnnotations[this.pageNum - 1].push(this.currentStroke);
+                        
+                        // Clear temp canvas
+                        this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+                    }
+                    
+                    this.currentStroke = null;
+                }
+            }
+            
+            savePageAnnotations() {
+                // Clear any unsaved drawings
+                this.stopDrawing();
+            }
+            
+            clearAnnotations() {
+                if (confirm("Are you sure you want to clear all annotations on this page?")) {
+                    // Clear the canvas
+                    this.annotationCtx.clearRect(0, 0, this.annotationCanvas.width, this.annotationCanvas.height);
+                    this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+                    
+                    // Clear annotations for current page
+                    this.pageAnnotations[this.pageNum - 1] = [];
+                }
+            }
+            
+            renderAnnotations() {
+                // Clear the canvas first
+                this.annotationCtx.clearRect(0, 0, this.annotationCanvas.width, this.annotationCanvas.height);
+                
+                // Get annotations for current page
+                const annotations = this.pageAnnotations[this.pageNum - 1] || [];
+                
+                // Redraw all annotations
+                annotations.forEach(stroke => {
+                    this.drawStroke(this.annotationCtx, stroke);
+                });
+            }
+
+            updatePageInfo() {
+                const pageInfo = document.getElementById('pageInfo');
+                pageInfo.textContent = `Page ${this.pageNum} of ${this.pageCount}`;
+                
+                const prevBtn = document.getElementById('prevPage');
+                const nextBtn = document.getElementById('nextPage');
+                
+                prevBtn.disabled = this.pageNum <= 1;
+                nextBtn.disabled = this.pageNum >= this.pageCount;
+            }
+
+            updateZoomInfo() {
+                const zoomLevel = document.getElementById('zoomLevel');
+                zoomLevel.textContent = Math.round(this.scale * 100) + '%';
+            }
+
+            setupSecurityMeasures() {
+                // Prevent right-click context menu
+                document.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    return false;
+                });
+
+                // Prevent common keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (
+                        (e.ctrlKey && (e.key === 's' || e.key === 'p' || e.key === 'a')) ||
+                        e.key === 'F12' ||
+                        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
+                        (e.ctrlKey && e.key === 'u')
+                    ) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    // Arrow keys for navigation
+                    if (e.key === 'ArrowLeft' && this.pageNum > 1) {
+                        this.savePageAnnotations();
+                        this.pageNum--;
+                        this.renderPage(this.pageNum);
+                        this.updatePageInfo();
+                        e.preventDefault();
+                    } else if (e.key === 'ArrowRight' && this.pageNum < this.pageCount) {
+                        this.savePageAnnotations();
+                        this.pageNum++;
+                        this.renderPage(this.pageNum);
+                        this.updatePageInfo();
+                        e.preventDefault();
+                    }
+                });
+
+                // Prevent text selection
+                document.onselectstart = () => false;
+                document.ondragstart = () => false;
+
+                // Mobile security
+                if (this.isMobile()) {
+                    this.setupMobileSecurity();
+                }
+
+                // Prevent canvas data extraction
+                const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+                HTMLCanvasElement.prototype.toDataURL = function() {
+                    if (this.id === 'pdfCanvas') {
+                        throw new Error('Access denied');
+                    }
+                    return originalToDataURL.apply(this, arguments);
+                };
+            }
+
+            isMobile() {
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            }
+
+            setupMobileSecurity() {
+                let touchStartTime = 0;
+                
+                document.addEventListener('touchstart', (e) => {
+                    touchStartTime = Date.now();
+                    if (e.touches.length > 1) {
+                        e.preventDefault();
+                    }
+                });
+
+                document.addEventListener('touchend', (e) => {
+                    const touchDuration = Date.now() - touchStartTime;
+                    if (touchDuration > 500) { // Long press
+                        e.preventDefault();
+                    }
+                });
+
+                // Prevent pinch zoom
+                document.addEventListener('gesturestart', (e) => {
+                    e.preventDefault();
+                });
+
+                document.addEventListener('gesturechange', (e) => {
+                    e.preventDefault();
+                });
+
+                document.addEventListener('gestureend', (e) => {
+                    e.preventDefault();
+                });
+            }
+
+            showError(message) {
+                const errorMessage = document.getElementById('errorMessage');
+                const errorDescription = document.getElementById('errorDescription');
+                
+                errorDescription.textContent = message;
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('viewerControls').style.display = 'none';
+                errorMessage.style.display = 'flex';
+            }
+            
+            // Clean up resources
+            cleanup() {
+                if (this.blobUrl) {
+                    URL.revokeObjectURL(this.blobUrl);
+                    this.blobUrl = null;
+                }
+                if (this.pdfDoc) {
+                    this.pdfDoc.destroy();
+                    this.pdfDoc = null;
+                }
+                
+                // Clear canvas
+                this.pdfCtx.clearRect(0, 0, this.pdfCanvas.width, this.pdfCanvas.height);
+                this.annotationCtx.clearRect(0, 0, this.annotationCanvas.width, this.annotationCanvas.height);
+                this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+            }
+        }
+
+        // Initialize viewer when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.viewer = new PDFViewer();
+            
+            // Clean up on page unload
+            window.addEventListener('beforeunload', () => {
+                window.viewer.cleanup();
+            });
+        });
+    </script>
+</body>
+</html>
